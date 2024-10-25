@@ -14,15 +14,15 @@ local macroStr = ''
 local resetType = "combat"
 local shortestCD = nil
 local bagUpdates = false -- debounce watcher for BAG_UPDATE events
-local debounceTime = 3 -- seconds
+local debounceTime = 3   -- seconds
 
 -- MegaMacro addon compatibility
 local megaMacro = {
   name = "MegaMacro", -- the addon name
-  retries = 0, -- number of loaded checks to prevent infinite loop
-  checked = false, -- did we check for the addon?
-  installed = false, -- is the addon installed?
-  loaded = false, -- is the addon loaded?
+  retries = 0,        -- number of loaded checks to prevent infinite loop
+  checked = false,    -- did we check for the addon?
+  installed = false,  -- is the addon installed?
+  loaded = false,     -- is the addon loaded?
 }
 
 local function log(message)
@@ -182,7 +182,7 @@ local function UpdateMegaMacro(newCode)
       return
     end
   end
-  print("|cffff0000AutoPotion Error:|r Missing global 'AutoPotion' macro in MegaMacro. Please create it.")
+  print("|cffff0000AutoPotion Error:|r Missing global 'AutoPotion' macro in MegaMacro. Please create it then reload your game.")
 end
 
 local function checkMegaMacroAddon()
@@ -246,15 +246,17 @@ function ham.updateMacro()
 
   if megaMacro.installed and megaMacro.loaded then
     UpdateMegaMacro(macroStr)
-  else
-    createMacroIfMissing()
-    EditMacro(macroName, macroName, nil, macroStr)
+    return
   end
+
+  log('MegaMacro not in use. Creating default macro.')
+  createMacroIfMissing()
+  EditMacro(macroName, macroName, nil, macroStr)
 end
 
 local function MakeMacro()
   -- dont attempt to create macro until MegaMacro addon is checked
-  if not megaMacro.checked or (megaMacro.checked and megaMacro.installed and not megaMacro.loaded) then
+  if not megaMacro.checked then
     log("MegaMacro not checked or loaded. Retrying.")
     checkMegaMacroAddon()
     return
@@ -308,8 +310,8 @@ updateFrame:SetScript("OnEvent", function(self, event, arg1, ...)
   elseif event == "PLAYER_REGEN_ENABLED" then
     log("event: PLAYER_REGEN_ENABLED")
     MakeMacro()
-  -- classic: when talents change
-  elseif isClassic and event == "TRAIT_CONFIG_UPDATED" then
+  -- when talents change and classic is false
+  elseif isClassic == false and event == "TRAIT_CONFIG_UPDATED" then
     log("event: TRAIT_CONFIG_UPDATED")
     MakeMacro()
   end
